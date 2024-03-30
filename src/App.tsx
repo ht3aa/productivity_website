@@ -1,15 +1,10 @@
-// import DonutCanvas from "./charts/Donut";
-import BarChart from "./charts/Bar";
+import BarChartCard from "./components/BarChartCard";
 
 const App = () => {
 
   return (
     <div>
-      {/* <DonutCanvas /> */}
-      <BarChart compareBy="path" max={10} />
-      <BarChart compareBy="year" />
-      <BarChart compareBy="month" />
-      <BarChart compareBy="day" filter="month" filterValue="3" />
+      <BarChartCard />
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import {
-  CSVToObjectType,
   ProductivityMapType,
   ProductivityArrType,
-  CSVToObjectKeysType,
+  ProductivityDataObjectType,
+  ProductivityMapFiltersType,
 } from "./types.js";
 
 export function addToSum(sums: Array<number>, paths: Array<string>, row: Array<string>) {
@@ -26,7 +26,7 @@ export function getMinsHsDsWsMsYs(seconds: number) {
 export function serializeCSVToObject(line: string) {
   const splittedLine = line.split(",");
 
-  const obj: CSVToObjectType = {
+  const obj: ProductivityDataObjectType = {
     year: splittedLine[0],
     month: splittedLine[1],
     day: splittedLine[2],
@@ -34,15 +34,17 @@ export function serializeCSVToObject(line: string) {
     minute: splittedLine[4],
     second: splittedLine[5],
     productivitySeconds: splittedLine[6],
-    path: splittedLine[7],
-    commitMsg: splittedLine[8],
+    timeSpentInLvim: splittedLine[7],
+    projectPath: splittedLine[8],
+    commitMsg: splittedLine[9],
+    feature: splittedLine[10],
   };
 
   return obj;
 }
 
-export function serializeCSVsToObjects(lines: Array<string>): Array<CSVToObjectType> {
-  const arr: Array<CSVToObjectType> = [];
+export function serializeCSVsToObjects(lines: Array<string>): Array<ProductivityDataObjectType> {
+  const arr: Array<ProductivityDataObjectType> = [];
 
   for (let i = 0; i < lines.length - 1; i++) {
     arr.push(serializeCSVToObject(lines[i]));
@@ -51,11 +53,11 @@ export function serializeCSVsToObjects(lines: Array<string>): Array<CSVToObjectT
   return arr;
 }
 
-export function serializeObjectToCSV(line: CSVToObjectType) {
-  return `${line.year},${line.month},${line.day},${line.hour},${line.minute},${line.second},${line.productivitySeconds},${line.path},${line.commitMsg}`;
+export function serializeObjectToCSV(line: ProductivityDataObjectType) {
+  return `${line.year},${line.month},${line.day},${line.hour},${line.minute},${line.second},${line.productivitySeconds},${line.projectPath},${line.commitMsg}`;
 }
 
-export function serializeObjectsToCSV(arr: Array<CSVToObjectType>) {
+export function serializeObjectsToCSV(arr: Array<ProductivityDataObjectType>) {
   let csv: Array<string> = [];
   arr.forEach((line) => {
     csv.push(serializeObjectToCSV(line));
@@ -88,43 +90,29 @@ export function formatProductivitySeconds(seconds: number) {
   };
 }
 
-export function getProductivityDependOn(
-  dependOn: CSVToObjectKeysType,
-  lines: Array<CSVToObjectType>,
-  filter?: CSVToObjectKeysType,
-  filterValue?: string
+export function getProductivitiesMapDependOn(
+  key: keyof ProductivityDataObjectType,
+  lines: Array<ProductivityDataObjectType>,
+  filters?: ProductivityMapFiltersType,
+): ProductivityMapType {
+  const productivityMap: ProductivityMapType = new Map();
 
-) {
-  const productivity: ProductivityMapType = new Map();
-  const copyLines = lines;
-
-  for (let i = 0; i < copyLines.length; i++) {
-    if (dependOn === "path") {
-      copyLines[i][dependOn] = copyLines[i][dependOn].split("/").slice(-2).join("/");
-    } else if(filter) {
-      if(copyLines[i][filter] !== filterValue) {
-        continue;
-      }
-    }
-    productivity.set(
-      copyLines[i][dependOn],
-      (productivity.get(copyLines[i][dependOn]) ?? 0) + parseInt(copyLines[i].productivitySeconds),
+  for (let i = 0; i < lines.length; i++) {
+    if (filters && !filters.types.every((type) => filters.values.includes(lines[i][type])))
+      continue;
+    productivityMap.set(
+      lines[i][key],
+      (productivityMap.get(lines[i][key]) ?? 0) + parseInt(lines[i].productivitySeconds),
     );
   }
 
-  return productivity;
+  return productivityMap;
 }
 
-export function convertProductivityMapToArrayOfObjects(productivity: Map<string, number>) {
-  const arr: ProductivityArrType = [];
-
-  productivity.forEach((value, key) => {
-    arr.push({
-      path: key,
-      productivity: value,
-    });
-  });
-  return arr;
+export function convertProductivitiesMapToArrayOfObjects(
+  productivitiesMap: Map<string, number>,
+): ProductivityArrType {
+  return Array.from(productivitiesMap).map(([key, value]) => ({ key: key, productivity: value }));
 }
 
 export function printProductivityMap(productivity: Map<string, number>) {
@@ -212,15 +200,63 @@ export async function printLines(lines: Array<string>) {
   });
 }
 
-export function getMaxNumbers(arr: ProductivityArrType, maxs: number) {
-  // Handle empty or single-element arrays
+export function getTop(top: number, arr: ProductivityArrType) {
   if (arr.length <= 1) {
     return arr;
   }
 
-  // Sort the array in descending order (largest to smallest)
   arr.sort((a, b) => b.productivity - a.productivity);
 
-  // Return the first 10 elements (maximum elements)
-  return arr.slice(0, maxs);
+  return arr.slice(0, top);
+}
+
+export async function getProductivityData(): Promise<Array<ProductivityDataObjectType>> {
+  const res = await fetch("http://localhost:3000/getData");
+  const { data } = await res.json();
+  return serializeCSVsToObjects(data);
+}
+
+export function getWantedFields(
+  data: Array<ProductivityDataObjectType>,
+  fields: Array<keyof ProductivityDataObjectType>,
+) {
+  return data.map((line) => {
+    return fields.reduce((acc: any, field: keyof ProductivityDataObjectType) => {
+      acc[field] = line[field];
+      return acc;
+    }, {});
+  });
+}
+
+export function removeDuplicates(arr: Array<string>) {
+  const set = new Set(arr);
+  return Array.from(set);
+}
+
+export function createOptionsForSelect(selectEl: HTMLSelectElement, arr: Array<string>) {
+  arr.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = item;
+    option.text = item;
+    selectEl.appendChild(option);
+  });
+}
+
+export function removeOptionsFromSelect(selectEl: HTMLSelectElement) {
+  Array.from(selectEl.children).forEach((child) => selectEl.removeChild(child));
+}
+
+export function flatArrObjsToArr(
+  arrOfobj: any,
+  key: keyof ProductivityDataObjectType,
+): Array<string> {
+  return arrOfobj.map((obj: any) =>  obj[key]);
+}
+
+export function flatArrObjsToArrWithFilter(
+  arrOfobj: any,
+  key: keyof ProductivityDataObjectType,
+  filters: ProductivityMapFiltersType,
+): Array<string> {
+  return arrOfobj.filter((obj: any) =>  filters.types.every((type) => filters.values.includes(obj[type]))).map((obj: any) =>  obj[key]);
 }
