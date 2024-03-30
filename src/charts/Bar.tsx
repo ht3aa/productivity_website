@@ -3,14 +3,13 @@ import { useEffect, useRef } from "react";
 import {
   formatProductivitySeconds,
 } from "../lib/lib";
-import { ProductivityArrType, ProductivityDataObjectType } from "../lib/types";
+import { ProductivityArrType } from "../lib/types";
 
 export default function BarChart({
   data,
-  compareBy,
 }: {
-  data: ProductivityArrType;
-  compareBy: keyof ProductivityDataObjectType;
+  data: ProductivityArrType,
+
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef(null);
@@ -43,7 +42,7 @@ export default function BarChart({
       .selectAll()
       .data(data)
       .join("rect")
-      .on("mousemove", function (e, d) {
+      .on("mousemove", function (e: MouseEvent, d) {
         d3.select(this).attr("fill", "rgb(6 95 70)").style("cursor", "pointer");
 
         const productivity = formatProductivitySeconds(d.productivity);
@@ -53,8 +52,8 @@ export default function BarChart({
             `${d.key}: ${productivity.years} years, ${productivity.months} months, ${productivity.weeks} weeks, ${productivity.days} days, ${productivity.hours} hours, ${productivity.minutes} minutes, ${productivity.seconds} seconds`,
           )
           .attr("class", "tooltip")
-          .style("left", `${screen.width - e.pageX - 250 > 0 ? e.pageX + 10 : e.pageX - 250}px`)
-          .style("top", `${e.pageY + 10}px`)
+          .style("left", `${screen.width - e.x - 250 > 0 ? e.x + 30 : e.x - 250}px`)
+          .style("top", `${e.y - 100}px`)
           .style("display", "block");
       })
       .on("mouseout", function () {
@@ -79,7 +78,7 @@ export default function BarChart({
       .call(xAxis);
 
     svg.append("g").attr("transform", `translate(${margin.left},0)`).call(yAxis);
-  }, [data, compareBy]);
+  }, [data]);
 
   return (
     <div>

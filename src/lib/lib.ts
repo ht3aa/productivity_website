@@ -90,8 +90,9 @@ export function formatProductivitySeconds(seconds: number) {
   };
 }
 
-export function getProductivitiesMapDependOn(
+export function getProductyDataMapDependOn(
   key: keyof ProductivityDataObjectType,
+  value: keyof ProductivityDataObjectType,
   lines: Array<ProductivityDataObjectType>,
   filters?: ProductivityMapFiltersType,
 ): ProductivityMapType {
@@ -102,7 +103,7 @@ export function getProductivitiesMapDependOn(
       continue;
     productivityMap.set(
       lines[i][key],
-      (productivityMap.get(lines[i][key]) ?? 0) + parseInt(lines[i].productivitySeconds),
+      (productivityMap.get(lines[i][key]) ?? 0) + parseInt(lines[i][value]),
     );
   }
 
