@@ -46,7 +46,7 @@ export function serializeCSVToObject(line: string) {
 export function serializeCSVsToObjects(lines: Array<string>): Array<ProductivityDataObjectType> {
   const arr: Array<ProductivityDataObjectType> = [];
 
-  for (let i = 0; i < lines.length - 1; i++) {
+  for (let i = 0; i < lines.length; i++) {
     arr.push(serializeCSVToObject(lines[i]));
   }
 
