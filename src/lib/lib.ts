@@ -135,7 +135,7 @@ export function getProductyDataMapDependOn(
 export function convertProductivitiesMapToArrayOfObjects(
   productivitiesMap: Map<string, number>,
 ): ProductivityArrType {
-  return Array.from(productivitiesMap).map(([key, value]) => ({ key: key, productivity: value }));
+  return Array.from(productivitiesMap).map(([key, value]) => ({ key: key, value: value }));
 }
 
 export function printProductivityMap(productivity: Map<string, number>) {
@@ -228,7 +228,7 @@ export function getTop(top: number, arr: ProductivityArrType) {
     return arr;
   }
 
-  arr.sort((a, b) => b.productivity - a.productivity);
+  arr.sort((a, b) => b.value - a.value);
 
   return arr.slice(0, top);
 }

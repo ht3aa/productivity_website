@@ -20,6 +20,7 @@ export default function DonutChartCard({ data }: { data: Array<IProductivityData
       flatArrObjsToArr(wantedField, "languages").flat(),
     );
 
+
     const productivityArr = convertProductivitiesMapToArrayOfObjects(productivityMap);
 
     setDonutChartData(productivityArr);

@@ -22,7 +22,7 @@ export default function BarChart({
   useEffect(() => {
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.productivity) || 0])
+      .domain([0, d3.max(data, (d) => d.value) || 0])
       .range([height - margin.bottom, margin.top]);
     // .range([margin.top, height - margin.bottom]);
     const xScale = d3
@@ -45,7 +45,7 @@ export default function BarChart({
       .on("mousemove", function (e: MouseEvent, d) {
         d3.select(this).attr("fill", "rgb(6 95 70)").style("cursor", "pointer");
 
-        const productivity = formatProductivitySeconds(d.productivity);
+        const productivity = formatProductivitySeconds(d.value);
 
         d3.select(tooltipRef.current)
           .text(
@@ -69,8 +69,8 @@ export default function BarChart({
       .attr("y", height - margin.bottom)
       .transition()
       .duration(2000)
-      .attr("y", (d) => yScale(d.productivity) || 0)
-      .attr("height", (d) => yScale(0) - yScale(d.productivity));
+      .attr("y", (d) => yScale(d.value) || 0)
+      .attr("height", (d) => yScale(0) - yScale(d.value));
 
     svg
       .append("g")

@@ -71,7 +71,6 @@ export default function BarChartCard({ data }: { data: Array<IProductivityDataOb
     const wantedFields = getWantedFields(data, ["year", "month"]);
     const avaiableMonths = flatArrObjsToArrWithFilter(wantedFields, "month", yearsFilter);
 
-    console.log("avaiableMonths", avaiableMonths);
     setMonths(removeDuplicates(avaiableMonths));
   };
 
