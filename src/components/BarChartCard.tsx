@@ -2,45 +2,38 @@ import { useEffect, useRef, useState } from "react";
 import BarChart from "../charts/Bar";
 import {
   ProductivityArrType,
-  ProductivityDataObjectType,
-  ProductivityMapFiltersType,
 } from "../lib/types";
 import {
   convertProductivitiesMapToArrayOfObjects,
   flatArrObjsToArr,
   flatArrObjsToArrWithFilter,
   getProductyDataMapDependOn,
-  getProductivityData,
   getTop,
   getWantedFields,
   removeDuplicates,
 } from "../lib/lib";
+import {  IProductivityDataObject, IProductivityMapFilters, ITotalsProductivityDataObjectType } from "../lib/interfaces";
 
-export default function BarChartCard() {
+export default function BarChartCard({ data }: { data: Array<IProductivityDataObject> }) {
   const selectYearRef = useRef<HTMLSelectElement>(null);
   const selectMonthRef = useRef<HTMLSelectElement>(null);
   const [xAxisType, setXAxisType]: ["projectPath" | "date", any] = useState("projectPath");
-  const [yAxisType, setYAxisType]: [keyof ProductivityDataObjectType, any] = useState("productivitySeconds");
+  const [yAxisType, setYAxisType]: [keyof ITotalsProductivityDataObjectType, any] = useState("totalProductivityInSeconds");
   const [years, setYears]: [Array<string>, any] = useState([]);
   const [months, setMonths]: [Array<string>, any] = useState([]);
   const [selectedYear, setSelectedYear]: [string, any] = useState("2024");
   const [selectedMonth, setSelectedMonth]: [string, any] = useState("all");
-  const [requestedData, setRequestedData] = useState<Array<ProductivityDataObjectType>>([]);
   const [barChartData, setBarChartDataData] = useState<ProductivityArrType>([]);
   const [top, setTop] = useState(0);
 
-  const requestForProductivityData = async () => {
-    const data = await getProductivityData();
-    setRequestedData(data);
-  };
 
   const getBarChartData = (
-    key: keyof ProductivityDataObjectType,
-    filters: ProductivityMapFiltersType,
+    key: keyof IProductivityDataObject,
+    filters: IProductivityMapFilters,
   ) => {
     let productivityDataArr: ProductivityArrType = [];
 
-    const productivityDataMap = getProductyDataMapDependOn(key, yAxisType, requestedData, filters);
+    const productivityDataMap = getProductyDataMapDependOn(key, yAxisType, data, filters);
     productivityDataArr = convertProductivitiesMapToArrayOfObjects(productivityDataMap);
 
     if (top > 0) {
@@ -51,8 +44,8 @@ export default function BarChartCard() {
   };
 
   const updateBarChartData = () => {
-    const yearsFilter: ProductivityMapFiltersType = { types: ["year"], values: [selectedYear] };
-    const yearsAndMonthsFilter: ProductivityMapFiltersType = {
+    const yearsFilter: IProductivityMapFilters = { types: ["year"], values: [selectedYear] };
+    const yearsAndMonthsFilter: IProductivityMapFilters = {
       types: ["year", "month"],
       values: [selectedYear, selectedMonth],
     };
@@ -74,15 +67,16 @@ export default function BarChartCard() {
   };
 
   const updateMonthOptions = () => {
-    const yearsFilter: ProductivityMapFiltersType = { types: ["year"], values: [selectedYear] };
-    const wantedFields = getWantedFields(requestedData, ["year", "month"]);
+    const yearsFilter: IProductivityMapFilters = { types: ["year"], values: [+selectedYear] };
+    const wantedFields = getWantedFields(data, ["year", "month"]);
     const avaiableMonths = flatArrObjsToArrWithFilter(wantedFields, "month", yearsFilter);
 
+    console.log("avaiableMonths", avaiableMonths);
     setMonths(removeDuplicates(avaiableMonths));
   };
 
   const updateYearOptions = () => {
-    const wantedFields = getWantedFields(requestedData, ["year", "month"]);
+    const wantedFields = getWantedFields(data, ["year", "month"]);
     const valuesArr = flatArrObjsToArr(wantedFields, "year");
     const years = removeDuplicates(valuesArr);
     setYears(years);
@@ -96,19 +90,16 @@ export default function BarChartCard() {
     updateBarChartData();
   }, [selectedYear, selectedMonth, yAxisType, xAxisType, top]);
 
-  useEffect(() => {
-    requestForProductivityData();
-  }, []);
 
   useEffect(() => {
     updateBarChartData();
     updateMonthOptions();
     updateYearOptions();
-  }, [requestedData ]);
+  }, [data]);
 
   return (
     <div className="w-full relative">
-      <BarChart data={barChartData} />
+      <BarChart data={barChartData} xAxisText={`${xAxisType} : ${selectedYear}/${selectedMonth}`} yAxisText={yAxisType}/>
       <div className="absolute top-0 right-[50px]">
         <input
           type="text"
@@ -125,8 +116,9 @@ export default function BarChartCard() {
           }}
           className="w-40 py-2 px-1 bg-gray-900 "
         >
-          <option value="productivitySeconds">Productivity</option>
-          <option value="timeSpentInLvim">Time Spent in lvim</option>
+          <option value="totalProductivityInSeconds">Productivity</option>
+          <option value="totalTimeInVim">Time Spent in lvim</option>
+          <option value="totalTimeSpentThinkingOrSearching">Time Spent Searching or Thinking</option>
         </select>
         <select
           onChange={(e) => {
@@ -147,7 +139,7 @@ export default function BarChartCard() {
           defaultValue="path"
           className="w-40 py-2 px-1 bg-gray-900 "
         >
-          {years.map((year) => (
+          {years[0] && years.map((year) => (
             <option key={year} value={year}>
               {year}
             </option>

@@ -1,9 +1,10 @@
 import {
-  ProductivityMapType,
-  ProductivityArrType,
-  ProductivityDataObjectType,
-  ProductivityMapFiltersType,
-} from "./types.js";
+  ILanguage,
+  IProductivityDataObject,
+  IProductivityMapFilters,
+  ITotalsProductivityDataObjectType,
+} from "./interfaces.js";
+import { ProductivityMapType, ProductivityArrType } from "./types.js";
 
 export function addToSum(sums: Array<number>, paths: Array<string>, row: Array<string>) {
   const index = paths.indexOf(row[7]);
@@ -23,47 +24,47 @@ export function getMinsHsDsWsMsYs(seconds: number) {
   return [minutes, hours, days, weeks, months, years];
 }
 
-export function serializeCSVToObject(line: string) {
-  const splittedLine = line.split(",");
+// export function serializeCSVToObject(line: string) {
+//   const splittedLine = line.split(",");
 
-  const obj: ProductivityDataObjectType = {
-    year: splittedLine[0],
-    month: splittedLine[1],
-    day: splittedLine[2],
-    hour: splittedLine[3],
-    minute: splittedLine[4],
-    second: splittedLine[5],
-    productivitySeconds: splittedLine[6],
-    timeSpentInLvim: splittedLine[7],
-    projectPath: splittedLine[8],
-    commitMsg: splittedLine[9],
-    feature: splittedLine[10],
-  };
+//   const obj: ProductivityDataObjectType = {
+//     year: splittedLine[0],
+//     month: splittedLine[1],
+//     day: splittedLine[2],
+//     hour: splittedLine[3],
+//     minute: splittedLine[4],
+//     second: splittedLine[5],
+//     productivitySeconds: splittedLine[6],
+//     timeSpentInLvim: splittedLine[7],
+//     projectPath: splittedLine[8],
+//     commitMsg: splittedLine[9],
+//     feature: splittedLine[10],
+//   };
 
-  return obj;
-}
+//   return obj;
+// }
 
-export function serializeCSVsToObjects(lines: Array<string>): Array<ProductivityDataObjectType> {
-  const arr: Array<ProductivityDataObjectType> = [];
+// export function serializeCSVsToObjects(lines: Array<string>): Array<ProductivityDataObjectType> {
+//   const arr: Array<ProductivityDataObjectType> = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    arr.push(serializeCSVToObject(lines[i]));
-  }
+//   for (let i = 0; i < lines.length; i++) {
+//     arr.push(serializeCSVToObject(lines[i]));
+//   }
 
-  return arr;
-}
+//   return arr;
+// }
 
-export function serializeObjectToCSV(line: ProductivityDataObjectType) {
-  return `${line.year},${line.month},${line.day},${line.hour},${line.minute},${line.second},${line.productivitySeconds},${line.projectPath},${line.commitMsg}`;
-}
+// export function serializeObjectToCSV(line: IProductivityDataObject) {
+//   return `${line.year},${line.month},${line.day},${line.hour},${line.minute},${line.second},${line.productivitySeconds},${line.projectPath},${line.commitMsg}`;
+// }
 
-export function serializeObjectsToCSV(arr: Array<ProductivityDataObjectType>) {
-  let csv: Array<string> = [];
-  arr.forEach((line) => {
-    csv.push(serializeObjectToCSV(line));
-  });
-  return csv;
-}
+// export function serializeObjectsToCSV(arr: Array<IProductivityDataObject>) {
+//   let csv: Array<string> = [];
+//   arr.forEach((line) => {
+//     csv.push(serializeObjectToCSV(line));
+//   });
+//   return csv;
+// }
 
 export function formatProductivitySeconds(seconds: number) {
   const years = Math.floor(seconds / (60 * 60 * 24 * 7 * 4 * 12));
@@ -91,20 +92,41 @@ export function formatProductivitySeconds(seconds: number) {
 }
 
 export function getProductyDataMapDependOn(
-  key: keyof ProductivityDataObjectType,
-  value: keyof ProductivityDataObjectType,
-  lines: Array<ProductivityDataObjectType>,
-  filters?: ProductivityMapFiltersType,
+  key: keyof IProductivityDataObject | keyof ILanguage,
+  value: keyof ITotalsProductivityDataObjectType | keyof ILanguage,
+  lines: Array<IProductivityDataObject | ILanguage>,
+  filters?: IProductivityMapFilters,
 ): ProductivityMapType {
   const productivityMap: ProductivityMapType = new Map();
+  const languagesKey = key as keyof ILanguage;
+  const languagesValue = value as keyof ILanguage;
+  const productivityKey = key as keyof IProductivityDataObject;
+  const productivityValue = value as keyof IProductivityDataObject;
+  const languagesLines = lines as Array<ILanguage>;
+  const productivityLines = lines as Array<IProductivityDataObject>;
 
-  for (let i = 0; i < lines.length; i++) {
-    if (filters && !filters.types.every((type) => filters.values.includes(lines[i][type])))
-      continue;
-    productivityMap.set(
-      lines[i][key],
-      (productivityMap.get(lines[i][key]) ?? 0) + parseInt(lines[i][value]),
-    );
+  if (languagesLines[0] && languagesLines[0].language) {
+    for (let i = 0; i < languagesLines.length; i++) {
+      productivityMap.set(
+        languagesLines[i][languagesKey] + "",
+        (productivityMap.get(languagesLines[i][languagesKey] + "") ?? 0) +
+          +languagesLines[i][languagesValue],
+      );
+    }
+  } else {
+    for (let i = 0; i < productivityLines.length; i++) {
+      if (
+        filters &&
+        !filters.types.every((type) => filters.values.includes(productivityLines[i][type] + ""))
+      )
+        continue;
+
+      productivityMap.set(
+        productivityLines[i][productivityKey] + "",
+        (productivityMap.get(productivityLines[i][productivityValue] + "") ?? 0) +
+          +productivityLines[i][productivityValue],
+      );
+    }
   }
 
   return productivityMap;
@@ -211,22 +233,40 @@ export function getTop(top: number, arr: ProductivityArrType) {
   return arr.slice(0, top);
 }
 
-export async function getProductivityData(): Promise<Array<ProductivityDataObjectType>> {
+export async function getProductivityData(): Promise<Array<IProductivityDataObject>> {
   const res = await fetch("http://localhost:3000/getData");
   const { data } = await res.json();
-  return serializeCSVsToObjects(data);
+  return data;
 }
 
 export function getWantedFields(
-  data: Array<ProductivityDataObjectType>,
-  fields: Array<keyof ProductivityDataObjectType>,
-) {
-  return data.map((line) => {
-    return fields.reduce((acc: any, field: keyof ProductivityDataObjectType) => {
-      acc[field] = line[field];
-      return acc;
-    }, {});
-  });
+  data: Array<IProductivityDataObject | ILanguage>,
+  fields: Array<keyof IProductivityDataObject | keyof ILanguage>,
+): any {
+  const languagesData = data as Array<ILanguage>;
+  const productivityData = data as Array<IProductivityDataObject>;
+  const languageFields = fields as Array<keyof ILanguage>;
+  const productivityFields = fields as Array<keyof IProductivityDataObject>;
+
+  if (languagesData.length && languagesData[0].language) {
+    return languagesData
+      .map((line) => {
+        const obj: any = {};
+        for (let i = 0; i < languageFields.length; i++) {
+          obj[languageFields[i]] = line[languageFields[i]];
+        }
+        return obj;
+      })
+      .flat();
+  } else {
+    return productivityData.map((line) => {
+      const obj: any = {};
+      for (let i = 0; i < productivityFields.length; i++) {
+        obj[productivityFields[i]] = line[productivityFields[i]];
+      }
+      return obj;
+    });
+  }
 }
 
 export function removeDuplicates(arr: Array<string>) {
@@ -249,15 +289,17 @@ export function removeOptionsFromSelect(selectEl: HTMLSelectElement) {
 
 export function flatArrObjsToArr(
   arrOfobj: any,
-  key: keyof ProductivityDataObjectType,
-): Array<string> {
-  return arrOfobj.map((obj: any) =>  obj[key]);
+  key: keyof IProductivityDataObject | keyof ILanguage | keyof ProductivityArrType,
+) {
+  return arrOfobj.map((obj: any) => obj[key]);
 }
 
 export function flatArrObjsToArrWithFilter(
   arrOfobj: any,
-  key: keyof ProductivityDataObjectType,
-  filters: ProductivityMapFiltersType,
+  key: keyof IProductivityDataObject | keyof ILanguage | keyof ProductivityArrType,
+  filters: IProductivityMapFilters,
 ): Array<string> {
-  return arrOfobj.filter((obj: any) =>  filters.types.every((type) => filters.values.includes(obj[type]))).map((obj: any) =>  obj[key]);
+  return arrOfobj
+    .filter((obj: any) => filters.types.every((type) => filters.values.includes(obj[type])))
+    .map((obj: any) => obj[key]);
 }

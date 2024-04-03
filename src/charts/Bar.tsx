@@ -1,25 +1,25 @@
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
-import {
-  formatProductivitySeconds,
-} from "../lib/lib";
+import { formatProductivitySeconds } from "../lib/lib";
 import { ProductivityArrType } from "../lib/types";
 
 export default function BarChart({
   data,
+  xAxisText,
+  yAxisText,
 }: {
-  data: ProductivityArrType,
-
+  data: ProductivityArrType;
+  xAxisText: string;
+  yAxisText: string;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef(null);
-  const margin = { top: 50, right: 80, bottom: 20, left: 80 };
+  const margin = { top: 70, right: 70, bottom: 70, left: 70 };
   const width = screen.width;
   const height = 600;
   const barSpacing = 15;
 
   useEffect(() => {
-
     const yScale = d3
       .scaleLinear()
       .domain([0, d3.max(data, (d) => d.productivity) || 0])
@@ -78,10 +78,38 @@ export default function BarChart({
       .call(xAxis);
 
     svg.append("g").attr("transform", `translate(${margin.left},0)`).call(yAxis);
+
+    const xLabel = svg.append("text").text(xAxisText);
+    const xLabelWidth = xLabel.node()?.getBoundingClientRect().width;
+
+    const yLabel = svg.append("text").text(yAxisText);
+    const yLabelWidth = yLabel.node()?.getBoundingClientRect().width;
+
+    if (xLabelWidth) {
+      xLabel
+        .style(
+          "transform",
+          `translate(${width / 2 - xLabelWidth / 2}px,${height - margin.bottom / 2}px)`,
+        )
+        .style("fill", "rgb(16 255 70)")
+        .style("font-size", "20px")
+        .style("font-weight", "bold");
+    }
+
+    if (yLabelWidth) {
+      yLabel
+        .style(
+          "transform",
+          `translate(${margin.left / 2}px,${height / 2 + yLabelWidth / 2}px) rotate(-90deg)`,
+        )
+        .style("fill", "rgb(16 255 70)")
+        .style("font-size", "20px")
+        .style("font-weight", "bold");
+    }
   }, [data]);
 
   return (
-    <div>
+    <div >
       <svg ref={svgRef} width={width} height={height}></svg>
       <span ref={tooltipRef}></span>
     </div>
