@@ -6,14 +6,15 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const donutTooltipRef = useRef(null);
   const width = screen.width;
-  const height = Math.min(width, 500);
+  const height = 2000
 
   useEffect(() => {
     const pie = d3.pie();
-    const arcs = pie(data.map((d) => d.productivity));
+    let arcs = pie(data.map((d) => d.productivity));
     const color = d3.scaleOrdinal(d3.schemeCategory10);
+    arcs = arcs.map((d, i) => ({ ...d, type: data[i].key }));
 
-    const arc = d3.arc<any, any>().innerRadius(50).outerRadius(100);
+    const arc = d3.arc<any, any>().innerRadius(200).outerRadius(400);
     const svg = d3.select(svgRef.current);
     svg
       .append("g")
@@ -23,7 +24,8 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
       .join("path")
       .on("mousemove", function (e: MouseEvent, d) {
         d3.select(donutTooltipRef.current)
-          .text(`language: ${data[d.index].key},productivity: ${data[d.index].productivity}`)
+          // @ts-ignore
+          .text(`language: ${d.type},productivity: ${d.data}`)
           .attr("class", "tooltip")
           .style("left", `${screen.width - e.x - 250 > 0 ? e.x + 30 : e.x - 250}px`)
           .style("top", `${e.pageY - 100}px`)
@@ -33,10 +35,7 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
       .attr("d", arc)
       .attr("fill", (_, i) => color(i + ""))
       .on("mouseout", function () {
-        // d3.select(this)
-        //   .attr("fill", "white")
-        //   .attr("width", xScale.bandwidth() - barSpacing);
-        // d3.select(tooltipRef.current).style("display", "none");
+        d3.select(donutTooltipRef.current).style("display", "none");
       });
   }, [data]);
 
