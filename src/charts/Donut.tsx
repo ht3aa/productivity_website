@@ -1,3 +1,6 @@
+
+
+
 import * as d3 from "d3";
 import { useEffect, useRef } from "react";
 import { ProductivityArrType } from "../lib/types";
@@ -31,10 +34,13 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
   const width = screen.width;
   const height = 2000;
 
+
+
   useEffect(() => {
     const pie = d3.pie();
     let arcs = pie(data.map((d) => d.value));
-    arcs = arcs.map((d, i) => ({ ...d, type: data[i].key }));
+    console.log(arcs, data)
+    // arcs = arcs.map((d, i) => ({ ...d, type: data[i].key }));
 
     const arc = d3.arc<any, any>().innerRadius(80).outerRadius(200);
     const svg = d3.select(svgRef.current);
@@ -46,10 +52,10 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
       .join("path")
       .on("mousemove", function (e: MouseEvent, d) {
         const productivity = formatProductivitySeconds(d.value);
+        const index = arcs.indexOf(d)
         d3.select(donutTooltipRef.current)
           .text(
-            // @ts-ignore
-            `language: ${d.type},productivity: ${d.type}: ${productivity.years} years, ${productivity.months} months, ${productivity.weeks} weeks, ${productivity.days} days, ${productivity.hours} hours, ${productivity.minutes} minutes, ${productivity.seconds} seconds`,
+            `language: ${data[index].key},productivity: ${data[index].key}: ${productivity.years} years, ${productivity.months} months, ${productivity.weeks} weeks, ${productivity.days} days, ${productivity.hours} hours, ${productivity.minutes} minutes, ${productivity.seconds} seconds`,
           )
           .attr("class", "tooltip")
           .style("left", `${screen.width - e.x - 250 > 0 ? e.x + 30 : e.x - 250}px`)
@@ -58,8 +64,7 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
       })
 
       .attr("d", arc)
-      // @ts-ignore
-      .attr("fill", (d, _) => colors.get(d.type) || "#ccc")
+      .attr("fill", (_, i) => colors.get(data[i].key) || "#ccc")
       .on("mouseout", function () {
         d3.select(donutTooltipRef.current).style("display", "none");
       });
