@@ -1,8 +1,8 @@
-
 import tsLogo from "@/assets/imgs/ts_language.png";
 import jsLogo from "@/assets/imgs/js_language.png";
 import htmlLogo from "@/assets/imgs/html_language.webp";
 import tsxLogo from "@/assets/imgs/tsx_language.webp";
+import sadSpongBob from "@/assets/imgs/sad_spongbob.webp";
 
 export const LANGUAGES_LOGOS = [
   {
@@ -27,7 +27,11 @@ export const LANGUAGES_LOGOS = [
   },
   {
     key: "commit_editmsg",
-    src: tsxLogo,
+    src: sadSpongBob,
+  },
+  {
+    key: "nvimtree_1",
+    src: sadSpongBob,
   },
   {
     key: "java",
