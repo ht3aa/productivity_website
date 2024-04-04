@@ -34,6 +34,7 @@ export default function BarChartCard({ data }: { data: Array<IProductivityDataOb
     let productivityDataArr: ProductivityArrType = [];
 
     const productivityDataMap = getProductyDataMapDependOn(key, yAxisType, data, filters);
+
     productivityDataArr = convertProductivitiesMapToArrayOfObjects(productivityDataMap);
 
     if (top > 0) {

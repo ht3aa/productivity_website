@@ -151,9 +151,10 @@ export function getProductyDataMapDependOn(
 
       productivityMap.set(
         productivityLines[i][productivityKey] + "",
-        (productivityMap.get(productivityLines[i][productivityValue] + "") ?? 0) +
+        (productivityMap.get(productivityLines[i][productivityKey] + "") ?? 0) +
           +productivityLines[i][productivityValue],
       );
+
     }
   }
 
