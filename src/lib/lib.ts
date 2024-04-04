@@ -65,6 +65,34 @@ export function getMinsHsDsWsMsYs(seconds: number) {
 //   });
 //   return csv;
 // }
+//
+export function getHoursFromSeconds(seconds: number) {
+  const hours = seconds / (60 * 60);
+
+  return hours;
+}
+
+export function mergeArrOfObjsToArrOfObjsThatHaveSameKey(
+  originalArr: ProductivityArrType,
+  newArr: Array<any>,
+) {
+  if (originalArr.length !== newArr.length) {
+    throw new Error(
+      " addNewItemToEveryItemInArrOfObjs: first argument and second argument must be of the same length",
+    );
+  }
+
+  const temp = [];
+  for (let i = 0; i < originalArr.length; i++) {
+    for (let j = 0; j < newArr.length; j++) {
+      if (originalArr[i].key === newArr[j].key) {
+        temp.push({ ...originalArr[i], ...newArr[j] });
+      }
+    }
+  }
+
+  return temp;
+}
 
 export function formatProductivitySeconds(seconds: number) {
   const years = Math.floor(seconds / (60 * 60 * 24 * 7 * 4 * 12));

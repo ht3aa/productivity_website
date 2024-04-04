@@ -39,7 +39,6 @@ export default function DonutChart({ data }: { data: ProductivityArrType }) {
   useEffect(() => {
     const pie = d3.pie();
     let arcs = pie(data.map((d) => d.value));
-    console.log(arcs, data)
     // arcs = arcs.map((d, i) => ({ ...d, type: data[i].key }));
 
     const arc = d3.arc<any, any>().innerRadius(80).outerRadius(200);

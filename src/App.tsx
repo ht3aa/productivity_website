@@ -4,6 +4,7 @@ import { IProductivityDataObject } from "./lib/interfaces";
 import { getProductivityData } from "./lib/lib";
 import DonutChartCard from "./components/DonutChartCard";
 import ScatterPlot from "./charts/ScatterPlot";
+import LanguageContainer from "./components/LanguageContainer";
 
 const App = () => {
   const [requestedData, setRequestedData] = useState<Array<IProductivityDataObject>>([]);
@@ -17,11 +18,14 @@ const App = () => {
     requestForProductivityData();
   }, []);
 
+
+
   return (
     <div>
       <BarChartCard data={requestedData} />
       <DonutChartCard data={requestedData} />
       <ScatterPlot data={requestedData} />
+      <LanguageContainer data={requestedData} />
     </div>
   );
 };
