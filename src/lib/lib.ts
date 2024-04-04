@@ -120,7 +120,7 @@ export function formatProductivitySeconds(seconds: number) {
 }
 
 export function getProductyDataMapDependOn(
-  key: keyof IProductivityDataObject | keyof ILanguage,
+  key: keyof IProductivityDataObject | keyof ILanguage | "total",
   value: keyof ITotalsProductivityDataObjectType | keyof ILanguage,
   lines: Array<IProductivityDataObject | ILanguage>,
   filters?: IProductivityMapFilters,
@@ -133,7 +133,14 @@ export function getProductyDataMapDependOn(
   const languagesLines = lines as Array<ILanguage>;
   const productivityLines = lines as Array<IProductivityDataObject>;
 
-  if (languagesLines[0] && languagesLines[0].language) {
+  if (key === "total") {
+    for (let i = 0; i < productivityLines.length; i++) {
+      productivityMap.set(
+        "total",
+        (productivityMap.get("total") ?? 0) + +productivityLines[i][productivityValue],
+      );
+    }
+  } else if (languagesLines[0] && languagesLines[0].language) {
     for (let i = 0; i < languagesLines.length; i++) {
       productivityMap.set(
         languagesLines[i][languagesKey] + "",
@@ -154,7 +161,6 @@ export function getProductyDataMapDependOn(
         (productivityMap.get(productivityLines[i][productivityKey] + "") ?? 0) +
           +productivityLines[i][productivityValue],
       );
-
     }
   }
 

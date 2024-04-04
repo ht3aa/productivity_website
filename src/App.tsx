@@ -5,6 +5,7 @@ import { getProductivityData } from "./lib/lib";
 import DonutChartCard from "./components/DonutChartCard";
 import ScatterPlot from "./charts/ScatterPlot";
 import LanguageContainer from "./components/LanguageContainer";
+import TotalsHeaders from "./components/TotalsHeaders";
 
 const App = () => {
   const [requestedData, setRequestedData] = useState<Array<IProductivityDataObject>>([]);
@@ -22,6 +23,7 @@ const App = () => {
 
   return (
     <div>
+      <TotalsHeaders data={requestedData} />
       <BarChartCard data={requestedData} />
       <DonutChartCard data={requestedData} />
       <ScatterPlot data={requestedData} />
